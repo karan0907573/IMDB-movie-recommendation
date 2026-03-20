@@ -59,29 +59,39 @@ def load_models():
         return None, None
 
 def display_recommendations(recommendations):
-    """Display recommendations in a nice format"""
+    """Display recommendations in a nice format with optional visualization"""
     if recommendations is None or len(recommendations) == 0:
         st.warning("No recommendations found. Please try a different search.")
         return
     
     st.subheader("🎯 Top 5 Recommendations")
     
-    for idx, (_, movie) in enumerate(recommendations.iterrows(), 1):
-        with st.container():
-            # Movie rank and title
-            col1, col2 = st.columns([0.1, 0.9])
-            
-            with col1:
-                st.markdown(f"### #{idx}")
-            
-            with col2:
-                st.markdown(f"### {movie.get('Title', 'N/A')}")
-            
-            # Display storyline
-            if 'Storyline' in movie and pd.notna(movie['Storyline']):
-                st.write(movie['Storyline'])
-            
-            st.divider()
+    # Toggle between card view and chart view
+    view_mode = st.toggle("📊 Show Visualization", value=False)
+    
+    if view_mode:
+        # Bar chart visualization of match scores
+        chart_data = recommendations[['Title', 'Match Score (%)']].copy()
+        chart_data = chart_data.set_index('Title').sort_values('Match Score (%)')
+        st.bar_chart(chart_data, horizontal=True)
+    else:
+        for idx, (_, movie) in enumerate(recommendations.iterrows(), 1):
+            with st.container():
+                col1, col2, col3 = st.columns([0.1, 0.75, 0.15])
+                
+                with col1:
+                    st.markdown(f"### #{idx}")
+                
+                with col2:
+                    st.markdown(f"### {movie.get('Title', 'N/A')}")
+                
+                with col3:
+                    st.metric("Match", f"{movie['Match Score (%)']}%")
+                
+                if 'Storyline' in movie and pd.notna(movie['Storyline']):
+                    st.write(movie['Storyline'])
+                
+                st.divider()
 
 def main():
     """Main application"""

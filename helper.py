@@ -45,8 +45,11 @@ def get_recommendations(user_input, tfidf_vectorizer, tfidf_matrix, df, top_n=5)
         
         # Get top N indices
         related_indices = similarity_scores.argsort()[-top_n:][::-1]
-        print(df.iloc[related_indices])
-        return df.iloc[related_indices]
+        
+        results = df.iloc[related_indices].copy()
+        results['Match Score (%)'] = (similarity_scores[related_indices] * 100).round(2)
+        
+        return results
     except Exception as e:
         print(f"Error in get_recommendations: {str(e)}")
         return None
